@@ -15,37 +15,37 @@ usersRouter.get('/', async (req: Request, res: Response, next: NextFunction) => 
 });
 
 usersRouter.post('/signup', [body("email").isEmail().withMessage("Email must be valid"),
-                        body("password").trim().notEmpty().withMessage("Please provide a password"), body("name").trim().notEmpty().withMessage("Please provide a your name")],
-    requestValidator,
+                body("password").trim().notEmpty().withMessage("Please provide a password"),
+                body("name").trim().notEmpty().withMessage("Please provide a your name")],
+                requestValidator,
     async (req: Request, res: Response, next: NextFunction) => {
-    const {email, name, password} = req.body;
+        const {email, name, password} = req.body;
         const userExits = await prisma.user.findFirst({where: {email: email}});
         if (userExits) {
             throw new BadRequestError("User already exists !");
         }
-    const user = await prisma.user.create({
-        data: {
-            name: name,
-            email: email,
-            password_hash: Md5.hashStr(password)
-        }
+        const user = await prisma.user.create({
+            data: {
+                name: name,
+                email: email,
+                password_hash: Md5.hashStr(password)
+            }
+        });
+        await prisma.user.update({
+            where: {
+                id: user.id
+            }, data: {
+                password_hash: Md5.hashStr(user.id.toString().concat(password))
+            }
+        })
+        return res.json({message: 'Success your account has been created', name: user.name, email: user.email});
     });
-    await prisma.user.update({
-        where: {
-            id: user.id
-        }, data: {
-            password_hash: Md5.hashStr(user.id.toString().concat(password))
-        }
-    })
-    return res.json({message: 'Success your account has been created', name: user.name, email: user.email});
-});
 
-usersRouter.post('/login', async (req: Request, res: Response, next: NextFunction) => {
-
+usersRouter.post('/login', [body("email").isEmail().withMessage("Email must be valid"),
+                               body("password").trim().notEmpty().withMessage("Please provide a password")],
+                               requestValidator,
+    async (req: Request, res: Response, next: NextFunction) => {
     const {email, password} = req.body
-    if (!email || !password) {
-        return res.status(401).send({message:'Please provide Username and Password!'});
-    }
     let user = null;
     try {
         user = await prisma.user.findFirst({where: {email: email}});

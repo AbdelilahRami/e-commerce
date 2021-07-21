@@ -1,8 +1,6 @@
 import {Router} from 'express';
 import { Request, Response, NextFunction } from 'express';
 import {PrismaClient} from "@prisma/client";
-import {Cart} from "../models/cart";
-
 const prisma = new PrismaClient()
 const catalogueRouter = Router();
 
@@ -11,6 +9,9 @@ catalogueRouter.get('/visible_authenticated', async (req:Request, res:Response, 
     const products =  await prisma.product.findMany({
         where: {
             visible_authenticated: 1
+        },
+        include: {
+            categories: true
         }
     });
     return res.json(products)
