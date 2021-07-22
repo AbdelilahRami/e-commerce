@@ -5,6 +5,7 @@ import {Md5} from 'ts-md5/dist/md5';
 import {body} from "express-validator";
 import {BadRequestError} from "../errors/bad-request-error";
 import {requestValidator} from "../middlewares/validate-request";
+import {userLoginValidator, userSignupValidator} from "../validators/userValidator";
 
 const prisma = new PrismaClient()
 const usersRouter = Router();
@@ -14,9 +15,7 @@ usersRouter.get('/', async (req: Request, res: Response, next: NextFunction) => 
     return res.json(users);
 });
 
-usersRouter.post('/signup', [body("email").isEmail().withMessage("Email must be valid"),
-                body("password").trim().notEmpty().withMessage("Please provide a password"),
-                body("name").trim().notEmpty().withMessage("Please provide a your name")],
+usersRouter.post('/signup', userSignupValidator,
                 requestValidator,
     async (req: Request, res: Response, next: NextFunction) => {
         const {email, name, password} = req.body;
@@ -41,8 +40,7 @@ usersRouter.post('/signup', [body("email").isEmail().withMessage("Email must be 
         return res.json({message: 'Success your account has been created', name: user.name, email: user.email});
     });
 
-usersRouter.post('/login', [body("email").isEmail().withMessage("Email must be valid"),
-                               body("password").trim().notEmpty().withMessage("Please provide a password")],
+usersRouter.post('/login', userLoginValidator,
                                requestValidator,
     async (req: Request, res: Response, next: NextFunction) => {
     const {email, password} = req.body
