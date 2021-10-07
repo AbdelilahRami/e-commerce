@@ -1,4 +1,4 @@
-A ecommerce application developped using NodeJS ExpressJs, typescript, and prisma as ORM.
+An ecommerce application developped using NodeJS ExpressJs, typescript, and prisma as ORM.
 
 ##Setup
 
